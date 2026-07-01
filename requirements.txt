@@ -1,0 +1,9 @@
+streamlit
+pandas
+plotly
+openpyxl
+fuzzywuzzy
+python-Levenshtein
+scipy
+statsmodels
+kaleido
