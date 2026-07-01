@@ -1,8 +1,21 @@
+import pandas as pd
 import streamlit as st
 
 from modules import file_validation as fv
 from modules import data_cleaner as dc
 from modules import data_visualizer as dv
+from modules import style
+
+
+def render_chart(fig, filename):
+    """Show a chart plus a one-click high-res PNG download for posters/slides."""
+    st.plotly_chart(fig, use_container_width=True)
+    st.download_button(
+        "Download high-res PNG (poster/slide quality)",
+        data=style.to_png_bytes(fig),
+        file_name=filename,
+        mime="image/png",
+    )
 
 st.set_page_config(page_title="Data Scrapper and Visualizer", layout="wide")
 st.title("Data Scrapper and Visualizer")
@@ -99,6 +112,7 @@ df = dv.coerce_datetime_columns(df)
 numeric_cols, categorical_cols, datetime_cols = dv.detect_column_types(df)
 
 viz_type = st.selectbox("Choose visualization type", [
+    "Distribution (single column)",
     "Histogram (single numeric)",
     "Scatter (numeric vs numeric)",
     "Boxplot (categorical vs numeric)",
@@ -106,24 +120,34 @@ viz_type = st.selectbox("Choose visualization type", [
 ])
 
 try:
-    if viz_type == "Histogram (single numeric)" and numeric_cols:
+    if viz_type == "Distribution (single column)" and numeric_cols:
         col = st.selectbox("Select column", numeric_cols)
-        st.plotly_chart(dv.plot_histogram(df, col), use_container_width=True)
+        chart_col, stats_col = st.columns([3, 1])
+        with chart_col:
+            render_chart(dv.plot_distribution(df, col), f"distribution_{col}.png")
+        with stats_col:
+            st.markdown("**Summary Statistics**")
+            stats = style.summary_stats(df[col])
+            st.table(pd.DataFrame(stats.items(), columns=["", col]).set_index(""))
+
+    elif viz_type == "Histogram (single numeric)" and numeric_cols:
+        col = st.selectbox("Select column", numeric_cols)
+        render_chart(dv.plot_histogram(df, col), f"histogram_{col}.png")
 
     elif viz_type == "Scatter (numeric vs numeric)" and len(numeric_cols) >= 2:
         col_x = st.selectbox("Select X axis", numeric_cols)
         col_y = st.selectbox("Select Y axis", numeric_cols, index=1)
-        st.plotly_chart(dv.plot_scatter(df, col_x, col_y), use_container_width=True)
+        render_chart(dv.plot_scatter(df, col_x, col_y), f"scatter_{col_x}_vs_{col_y}.png")
 
     elif viz_type == "Boxplot (categorical vs numeric)" and categorical_cols and numeric_cols:
         cat_col = st.selectbox("Select categorical column", categorical_cols)
         num_col = st.selectbox("Select numeric column", numeric_cols)
-        st.plotly_chart(dv.plot_boxplot(df, cat_col, num_col), use_container_width=True)
+        render_chart(dv.plot_boxplot(df, cat_col, num_col), f"boxplot_{num_col}_by_{cat_col}.png")
 
     elif viz_type == "Time Series (date vs numeric)" and datetime_cols and numeric_cols:
         date_col = st.selectbox("Select date column", datetime_cols)
         num_col = st.selectbox("Select numeric column", numeric_cols, key="ts_num")
-        st.plotly_chart(dv.plot_time_series(df, date_col, num_col), use_container_width=True)
+        render_chart(dv.plot_time_series(df, date_col, num_col), f"timeseries_{num_col}.png")
 
     else:
         st.warning("Not enough columns of the right type for this visualization.")
