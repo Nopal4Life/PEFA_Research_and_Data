@@ -1,4 +1,4 @@
-# Data Scrapper and Visualizer
+# Data Cleaner and Visualizer
 
 A Streamlit app for uploading a CSV/Excel file, cleaning it up, and
 visualizing it.
