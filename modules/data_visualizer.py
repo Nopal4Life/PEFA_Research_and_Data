@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -17,7 +19,9 @@ def coerce_datetime_columns(df, min_success_ratio=0.9):
     """
     df = df.copy()
     for col in df.select_dtypes(include=["object"]).columns:
-        parsed = pd.to_datetime(df[col], errors="coerce")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            parsed = pd.to_datetime(df[col], errors="coerce")
         non_null = df[col].notna().sum()
         if non_null > 0 and parsed.notna().sum() / non_null >= min_success_ratio:
             df[col] = parsed

@@ -9,7 +9,7 @@ from modules import style
 
 def render_chart(fig, filename):
     """Show a chart plus a one-click high-res PNG download for posters/slides."""
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
     st.download_button(
         "Download high-res PNG (poster/slide quality)",
         data=style.to_png_bytes(fig),
@@ -41,10 +41,10 @@ if st.session_state.get("file_id") != file_id:
     st.session_state.confirmed_merges = []
 
 st.subheader("Data Preview")
-st.dataframe(raw_df.head(), use_container_width=True)
+st.dataframe(raw_df.head(), width="stretch")
 
 st.subheader("Data Summary")
-st.dataframe(raw_df.describe(), use_container_width=True)
+st.dataframe(raw_df.describe(), width="stretch")
 
 # --- Missing values ---
 st.subheader("Missing Values")
